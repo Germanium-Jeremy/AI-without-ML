@@ -7,20 +7,24 @@ import serial
 
 # -------------------------- CONFIG --------------------------
 CASCADE_PATH = 'models/haarcascade_frontalface_default.xml'
-CAM_IDX = 0                   # webcam index
+CAM_IDX = 0
 FRAME_SIZE = (800, 600)
 FONT = cv2.FONT_HERSHEY_SIMPLEX
-SERIAL_PORT = 'COM3'          # <-- change this to your Arduino port (e.g., /dev/ttyUSB0 on Linux)
+SERIAL_PORT = 'COM3'
 BAUD_RATE = 9600
-ROTATE_STEP = 5               # degrees per adjustment
-THRESHOLD = 100               # pixels from center before adjusting
+
+# --- Motor tuning ---
+MAX_ROTATE_STEP = 10       # max degrees per command
+THRESHOLD = 20             # minimum pixels offset to start correction
+SMOOTH_FACTOR = 0.04       # smaller = smoother (0.03–0.1 is good)
+SEND_INTERVAL = 0.05        # seconds between commands
 # -------------------------------------------------------------
 
 def main():
     # ---- Connect to Arduino ----
     try:
         arduino = serial.Serial(SERIAL_PORT, BAUD_RATE, timeout=1)
-        time.sleep(2)  # wait for Arduino to reset
+        time.sleep(2)
         print(f"[OK] Connected to Arduino on {SERIAL_PORT}")
     except Exception as e:
         print("[ERROR] Could not connect to Arduino:", e)
@@ -31,6 +35,7 @@ def main():
     if cascade.empty():
         sys.exit(f"[ERROR] Could not load cascade: {CASCADE_PATH}")
 
+    # ---- Open camera ----
     cap = cv2.VideoCapture(1)
     cap.set(cv2.CAP_PROP_FRAME_WIDTH, FRAME_SIZE[0])
     cap.set(cv2.CAP_PROP_FRAME_HEIGHT, FRAME_SIZE[1])
@@ -38,7 +43,7 @@ def main():
         sys.exit("[ERROR] Cannot open camera")
 
     frame_center_x = FRAME_SIZE[0] // 2
-    last_cmd_time = 0
+    last_send = 0
 
     print("Press 'q' to quit")
 
@@ -48,36 +53,39 @@ def main():
             print("[WARN] Frame capture failed.")
             break
 
+        frame = cv2.flip(frame, 1)
         gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
         faces = cascade.detectMultiScale(gray, scaleFactor=1.1, minNeighbors=5, minSize=(80, 80))
 
         if len(faces) > 0:
             x, y, w, h = max(faces, key=lambda r: r[2] * r[3])
             cx = x + w // 2
+            offset = cx - frame_center_x
 
             # Draw face box
             cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 2)
             cv2.circle(frame, (cx, y + h // 2), 5, (0, 0, 255), -1)
 
-            offset = cx - frame_center_x
+            # ---- Proportional smooth rotation ----
+            if abs(offset) > THRESHOLD and (time.time() - last_send > SEND_INTERVAL):
+                # Map offset to rotation angle (proportional control)
+                rotate_deg = np.clip(abs(offset) * SMOOTH_FACTOR, 1, MAX_ROTATE_STEP)
 
-            # Only send a command if face is far from center
-            if abs(offset) > THRESHOLD and (time.time() - last_cmd_time > 1):
                 if offset < 0:
-                    command = f"CCW {ROTATE_STEP}\n"
-                    print("Face left → Rotate CCW")
+                    command = f"CCW {rotate_deg:.1f}\n"
+                    print(f"Left ({offset}) → CCW {rotate_deg:.1f}°")
                 else:
-                    command = f"CW {ROTATE_STEP}\n"
-                    print("Face right → Rotate CW")
+                    command = f"CW {rotate_deg:.1f}\n"
+                    print(f"Right ({offset}) → CW {rotate_deg:.1f}°")
 
                 if arduino:
                     arduino.write(command.encode('utf-8'))
-                last_cmd_time = time.time()
+                last_send = time.time()
 
         # Draw center line
-        cv2.line(frame, (frame_center_x, 0), (frame_center_x, FRAME_SIZE[1]), (255, 0, 0), 2)
+        # cv2.line(frame, (frame_center_x, 0), (frame_center_x, FRAME_SIZE[1]), (255, 0, 0), 2)
 
-        cv2.imshow("Face Tracker", frame)
+        cv2.imshow("Smooth Face Tracker", frame)
         if cv2.waitKey(1) & 0xFF == ord('q'):
             break
 
