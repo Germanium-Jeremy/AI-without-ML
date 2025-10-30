@@ -4,8 +4,8 @@ import time
 import os
 
 # ---- Config ----
-MAX_IMAGES = 250
-INTERVAL_MS = 500
+MAX_IMAGES = 300
+INTERVAL_MS = 400
 FRAME_SIZE = (800, 800)  # (w, h)
 CASCADE_PATH = 'models/haarcascade_frontalface_default.xml'
 DATASET_DIR = 'dataset'
@@ -22,7 +22,7 @@ ID = input('Enter your ID: ').strip()
 print("Please get your face ready!")
 time.sleep(2)
 
-cam = cv2.VideoCapture(0)
+cam = cv2.VideoCapture(1)
 cam.set(cv2.CAP_PROP_FRAME_WIDTH, FRAME_SIZE[0])
 cam.set(cv2.CAP_PROP_FRAME_HEIGHT, FRAME_SIZE[1])
 if not cam.isOpened():

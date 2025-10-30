@@ -11,12 +11,12 @@ LABELMAP_PATH = MODELS_DIR / "label_map.json"
 
 # -------- CLI --------
 ap = argparse.ArgumentParser(description="LBPH Face Recognition (predict).")
-ap.add_argument("--threshold", type=float, default=60.0,
+ap.add_argument("--threshold", type=float, default=80.0,
                 help="Distance cutoff: <= threshold → candidate match; > threshold → Unknown")
-ap.add_argument("--min-conf", type=float, default=20.0,
-                help="Minimum confidence percentage (0-100) to accept a match (default: 20)")
-ap.add_argument("--camera", type=int, default=0,
-                help="Camera index (default 0). Ignored if --image is set.")
+ap.add_argument("--min-conf", type=float, default=10.0,
+                help="Minimum confidence percentage (0-100) to accept a match (default: 25)")
+ap.add_argument("--camera", type=int, default=1,
+                help="Camera index (default 1). Ignored if --image is set.")
 ap.add_argument("--image", type=str,
                 help="Run on a single image instead of webcam.")
 args = ap.parse_args()

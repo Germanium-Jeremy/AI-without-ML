@@ -53,9 +53,9 @@ LABELMAP = MODELS / "label_map.json"
 ap = argparse.ArgumentParser(description="Train LBPH with optional simple validation.")
 ap.add_argument("--val-split", type=float, default=0.0,
                 help="Fraction per label for validation (e.g., 0.2).")
-ap.add_argument("--threshold", type=float, default=60.0,
+ap.add_argument("--threshold", type=float, default=80.0,
                 help="Distance threshold for 'Unknown' during validation.")
-ap.add_argument("--min-size", type=int, default=60,
+ap.add_argument("--min-size", type=int, default=80,
                 help="Min face size (pixels) for detection window.")
 ap.add_argument("--unknown-csv", default="",
                 help="If set, write Unknown validation samples to this CSV path.")
