@@ -1,30 +1,3 @@
-#!/usr/bin/env python3
-"""
-Dataset Preview and Cleaner (LBPH project, beginner-friendly)
-
-Purpose
--------
-Visually browse and curate your face dataset. You can:
-- Preview images in a consistent 1280×720 window with a simple HUD.
-- Navigate manually or play a slideshow.
-- Delete images **permanently** (no trash, no undo).
-
-Notes
------
-- Deletion is immediate and irreversible from within this tool.
-- If you need a reversible flow, use version control (git) or keep backups.
-
-Controls
---------
-n       : next image
-p      : previous image
-space / s   : play/pause slideshow
-+ or =      : faster slideshow
-- or _      : slower slideshow
-d           : delete current image (PERMANENT)
-q or ESC    : quit
-"""
-
 import cv2, time
 from pathlib import Path
 import numpy as np

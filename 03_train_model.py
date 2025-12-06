@@ -1,35 +1,3 @@
-#!/usr/bin/env python3
-"""
-Train LBPH (AI without ML) with optional simple validation.
-
-Purpose
--------
-- Load a face dataset (skipping any `.trash`).
-- Infer labels robustly:
-    1) Use parent folder name (preferred) if not 'dataset' or '.trash'.
-    2) Else if filename matches `data.<LABEL>.<ts>.jpg`, use <LABEL>.
-    3) Else if filename matches `<LABEL>_anything.ext`, use the prefix before the underscore.
-- Detect the largest face per image (Haar), equalize histogram, resize to 200x200.
-- Train an OpenCV LBPH recognizer (no epochs, no backprop).
-- Optionally run a simple validation split to report accuracy and a confusion matrix.
-- Save:
-    - models/trained_lbph_face_recognizer_model.yml
-    - models/label_map.json
-
-Quick usage
------------
-# Train on all data (no validation)
-python 03_train_model.py
-
-# Recommended for practice and reporting (your chosen longest command):
-python 03_train_model.py --val-split 0.2 --threshold 60
-
-Notes
------
-- Threshold is only used in validation to decide when to label as 'Unknown'.
-- Requires opencv-contrib-python for cv2.face.* APIs.
-"""
-
 import argparse
 import csv
 import json
