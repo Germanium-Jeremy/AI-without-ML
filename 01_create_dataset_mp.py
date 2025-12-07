@@ -50,6 +50,9 @@ while True:
         print("[Warn] Failed to read frame.")
         break
 
+    # Create a copy of the original frame for saving purposes
+    original_frame = frame.copy()
+
     detections = detector.detect(frame)
 
     # Optional mesh overlay
@@ -67,7 +70,7 @@ while True:
 
         elapsed_ms = (time.time() - last_capture_ts) * 1000.0
         if (elapsed_ms >= args.interval_ms) and (image_count < args.max_images) and not captured_this_frame:
-            gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+            gray = cv2.cvtColor(original_frame, cv2.COLOR_BGR2GRAY)  # Use the original frame here
             face_crop = gray[y:y + h, x:x + w]
             filename = DATASET_DIR / f"data.{ID}.{int(time.time() * 1000)}.jpg"
             cv2.imwrite(str(filename), face_crop)

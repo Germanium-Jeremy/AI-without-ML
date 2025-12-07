@@ -62,7 +62,6 @@ def recognize_in_frame(frame_bgr, threshold, min_conf, tnow):
 
     dets = mp_detector.detect(frame_bgr)
     accepted_count = 0
-    movement_info = None
 
     gray = cv2.cvtColor(frame_bgr, cv2.COLOR_BGR2GRAY)
     cv2.equalizeHist(gray, gray)
@@ -88,45 +87,11 @@ def recognize_in_frame(frame_bgr, threshold, min_conf, tnow):
             cy = y + h // 2
             cv2.circle(frame_bgr, (cx, cy), 5, (0, 255, 255), -1)
 
-            # Movement
-            if prev_face_center is not None and prev_face_time is not None:
-                pcx, pcy = prev_face_center
-                dx, dy = cx - pcx, cy - pcy
-                dt = max(1e-6, tnow - prev_face_time)
-                dist_px = (dx*dx + dy*dy) ** 0.5
-                speed = dist_px / dt  # px/s
-                direction = "Stationary"
-                if dist_px > MOVEMENT_THRESHOLD:
-                    if abs(dx) >= abs(dy):
-                        direction = "Right" if dx > 0 else "Left"
-                    else:
-                        direction = "Down" if dy > 0 else "Up"
-                    cv2.line(frame_bgr, (pcx, pcy), (cx, cy), (255, 0, 255), 2)
-                movement_info = {"direction": direction, "speed": speed, "dx": dx, "dy": dy}
-
-            prev_face_center = (cx, cy)
-            prev_face_time = tnow
-
             # Top tag with name/conf
             top = max(0, y - TAG_H - 10)
             cv2.rectangle(frame_bgr, (x - 2, top), (x + w + 2, top + TAG_H), TAG_BG, -1)
             label = f"{name}: {conf_pct:.1f}% (d={dist:.1f})"
             cv2.putText(frame_bgr, label, (x + 4, top + TAG_H - 15), FONT, FONT_SCALE, FONT_COLOR, FONT_THICK, cv2.LINE_AA)
-
-            # Movement panel below
-            if movement_info:
-                info_y = y + h + 15
-                cv2.rectangle(frame_bgr, (x - 2, y + h + 5), (x + w + 2, y + h + 55), (0, 0, 0), -1)
-                cv2.putText(frame_bgr, f"Dir: {movement_info['direction']}", (x + 4, info_y), FONT, 0.5, (0, 255, 255), 1, cv2.LINE_AA)
-                cv2.putText(frame_bgr, f"Speed: {movement_info['speed']:.1f} px/s", (x + 4, info_y + 20), FONT, 0.5, (0, 255, 255), 1, cv2.LINE_AA)
-                cv2.putText(frame_bgr, f"dx:{movement_info['dx']:+.0f} dy:{movement_info['dy']:+.0f}", (x + 4, info_y + 40), FONT, 0.4, (200, 200, 200), 1, cv2.LINE_AA)
-
-            # Track first accepted face only
-            break
-
-    if accepted_count == 0:
-        prev_face_center = None
-        prev_face_time = None
 
     return frame_bgr, accepted_count
 
