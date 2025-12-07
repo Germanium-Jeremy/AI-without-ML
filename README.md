@@ -84,7 +84,7 @@ uv pip install --upgrade pip
 source .venv310/bin/activate
 
 # Install dependencies
-pip install -r requirements.txt
+pip install -r requirements_mp.txt
 ```
 
 ### Usage
